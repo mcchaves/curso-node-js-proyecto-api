@@ -1,10 +1,12 @@
 const express = require('express') // llamamos a Express
 const app = express()
 const router = require('./routes')
+require('./db')
 
 var port = process.env.PORT || 8080 // establecemos nuestro puerto
 
 // nuestra ruta irá en http://localhost:8080/api
+
 // es bueno que haya un prefijo, sobre todo por el tema de versiones de la API
 app.use('/api', router)
 
