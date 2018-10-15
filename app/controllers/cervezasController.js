@@ -1,15 +1,30 @@
 const Cervezas = require('../models/Cervezas')
+const { ObjectId } = require('mongodb')
 
+// busco cervezas por palabra clave
 const search = (req, res) => {
   const q = req.query.q
-  res.send({ mensaje: `Cerveza ${q} buscada` })
+  Cervezas.find({ $text: { $search: q } }, (err, cervezas) => {
+    if (err) {
+      return res.status(500).json({
+        message: 'Error en la búsqueda'
+      })
+    }
+    if (!cervezas.length) {
+      return res.status(404).json({
+        message: 'No hemos encontrado cervezas que cumplan esa query'
+      })
+    } else {
+      return res.json(cervezas)
+    }
+  })
 }
 
+// listo las cervezas
 const list = (req, res) => {
-  // listo todas las cervezas
   Cervezas.find((err, cervezas) => {
     if (err) {
-      res.status(500).send()
+      res.status(500).send({})
     }
     res.status(200).send(cervezas)
   })
@@ -18,16 +33,25 @@ const list = (req, res) => {
 // busco una cerveza por id
 const show = (req, res) => {
   const id = req.params.id
-  Cervezas.findById({ _id: id }, (err, cerveza) => {
+  Cervezas.findOne({ _id: id }, (err, cerveza) => {
+    if (!ObjectId.isValid(id)) {
+      return res.status(404).send()
+    } else
     if (err) {
-      res.send('Error: error')
+      return res.status(500).json({
+        message: 'Se ha producido un error al obtener la cerveza'
+      })
+    } else
+    if (!cerveza) {
+      return res.status(404).json({
+        message: 'No tenemos esta cerveza'
+      })
     }
-    if (cerveza === null) return res.status(404).send({})
-    res.send(cerveza)
+    return res.json(cerveza)
   })
 }
 
-// Creo nueva cerveza
+// creo una cerveza
 const create = (req, res) => {
   const cerveza = new Cervezas(req.body)
   cerveza.save((err, cerveza) => {
@@ -40,17 +64,12 @@ const create = (req, res) => {
     return res.status(201).json(cerveza)
   })
 }
-module.exports = {
-  search,
-  list,
-  show,
-  create
-}
 
+// actualizo una cerveza
 const update = (req, res) => {
   const id = req.params.id
   Cervezas.findOne({ _id: id }, (err, cerveza) => {
-    if (!Cervezas.ObjectId.isValid(id)) {
+    if (!ObjectId.isValid(id)) {
       return res.status(404).send()
     }
     if (err) {
@@ -85,21 +104,30 @@ const update = (req, res) => {
     })
   })
 }
-module.exports = {
-  search,
-  list,
-  show,
-  create,
-  update
-}
 
+// borro una cerveza
 const remove = (req, res) => {
   const id = req.params.id
-  // res.send({ mensaje: `Borrada la cerveza con id ${id}` })
-  Cervezas.findByIdAndRemove({ _id: id })
+
+  Cervezas.findOneAndDelete({ _id: id }, (err, cerveza) => {
+    if (!ObjectId.isValid(id)) {
+      return res.status(404).send()
+    }
+    if (err) {
+      return res.json(500, {
+        message: 'No hemos encontrado la cerveza'
+      })
+    }
+    if (!cerveza) {
+      return res.status(404).json({
+        message: 'No hemos encontrado la cerveza'
+      })
+    }
+    return res.json(cerveza)
+  })
 }
 
-const cervezasController = {
+module.exports = {
   search,
   list,
   show,
@@ -107,5 +135,3 @@ const cervezasController = {
   update,
   remove
 }
-
-module.exports = cervezasController
