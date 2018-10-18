@@ -3,6 +3,7 @@ const express = require('express')
 const router = express.Router()
 const cervezasRouter = require('./cervezas')
 const cursosRouter = require('./cursos')
+// const useRouter = require('./users')
 
 router.get('/', (req, res) => {
   res.json({ mensaje: '¡Pasa pues!' })
@@ -11,5 +12,7 @@ router.get('/', (req, res) => {
 router.use('/cervezas', cervezasRouter)
 
 router.use('/cursos', cursosRouter)
+
+// router.use('./users', useRouter)
 
 module.exports = router
